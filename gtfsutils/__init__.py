@@ -1,4 +1,5 @@
 import os
+import logging
 import datetime
 import pandas as pd
 import shapely.geometry
@@ -6,6 +7,8 @@ import geopandas as gpd
 from zipfile import ZipFile
 
 __version__ = "0.0.4"
+
+logger = logging.getLogger(__name__)
 
 
 REQUIRED_GTFS_FILES = [
@@ -68,17 +71,25 @@ def load_gtfs(filepath, subset=None):
         for filename in os.listdir(filepath):
             filekey = filename.split('.txt')[0]
             if (subset is None) or (filekey in subset):
-                df_dict[filekey] = pd.read_csv(
-                    os.path.join(filepath, filename),
-                    low_memory=False)
+                try:
+                    df_dict[filekey] = pd.read_csv(
+                        os.path.join(filepath, filename),
+                        low_memory=False)
+                except Exception as e:
+                    logger.error(
+                        f"[{e.__class__.__name__}] {e} for {filename}")
     else:
         with ZipFile(filepath) as z:
             for filename in z.namelist():
                 filekey = filename.split('.txt')[0]
                 if (subset is None) or (filekey in subset):
-                    df_dict[filekey] = pd.read_csv(
-                        z.open(filename),
-                        low_memory=False)
+                    try:
+                        df_dict[filekey] = pd.read_csv(
+                            z.open(filename),
+                            low_memory=False)
+                    except Exception as e:
+                        logger.error(
+                            f"[{e.__class__.__name__}] {e} for {filename}")
             
     return df_dict
 
@@ -93,7 +104,7 @@ def load_shapes(src):
             f"Data type not supported: {type(src)}")
     
     if 'shapes' not in df_dict:
-        raise Exception("shapes.txt not found in GTFS")
+        raise ValueError("shapes.txt not found in GTFS")
 
     items = []
     for shape_id, g in df_dict['shapes'].groupby('shape_id'):

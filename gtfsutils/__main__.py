@@ -6,6 +6,8 @@ import argparse
 import gtfsutils
 import gtfsutils.filter
 
+logger = logging.getLogger(__name__)
+
 
 def main():
     parser = argparse.ArgumentParser(description="GTFS Utilities")
@@ -62,20 +64,20 @@ def main():
         t = time.time()
         df_dict = gtfsutils.load_gtfs(args.src)
         duration = time.time() - t
-        logging.debug(f"Loaded {args.src} in {duration:.2f}s")
+        logger.debug(f"Loaded {args.src} in {duration:.2f}s")
 
         # Filter GTFS
         t = time.time()
         gtfsutils.filter.filter_by_geometry(
             df_dict, bounds, operation=args.operation)
         duration = time.time() - t
-        logging.debug(f"Filtered {args.src} in {duration:.2f}s")
+        logger.debug(f"Filtered {args.src} in {duration:.2f}s")
 
         # Save filtered GTFS
         t = time.time()
         gtfsutils.save_gtfs(df_dict, args.dst, ignore_required=True, overwrite=args.overwrite)
         duration = time.time() - t
-        logging.debug(f"Saved to {args.dst} in {duration:.2f}s")
+        logger.debug(f"Saved to {args.dst} in {duration:.2f}s")
     
     elif args.method == "bounds":
         assert args.src is not None, "No input file specified"
