@@ -57,6 +57,28 @@ optional arguments:
   -v, --verbose         Verbose output
 ```
 
+# Testing
+
+Prepare dev environment with:
+
+```bash
+# Create virtual environement
+python -m venv ./venv
+
+# Install dependencies
+pip install -r requirements-dev.txt
+pip install -r requirements.txt
+
+# Activate virtual environment
+source venv/bin/activate
+```
+
+To run unit tests, type:
+
+```bash
+pytest -v
+```
+
 # License
 
 This project is licensed under the MIT license. See the [LICENSE](LICENSE) for details.
