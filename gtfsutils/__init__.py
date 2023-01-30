@@ -103,7 +103,7 @@ def load_stops(src):
         raise ValueError(
             f"Data type not supported: {type(src)}")
 
-    stops = df_dict['stops']
+    stops = df_dict['stops'].copy()
     geoms = gpd.points_from_xy(stops.stop_lon, stops.stop_lat)
 
     return gpd.GeoDataFrame(
@@ -137,7 +137,7 @@ def load_shapes(src, geom_type='linestring'):
         gdf = gpd.GeoDataFrame(items, geometry='geom', crs="EPSG:4326")
 
     elif geom_type == 'point':
-        shapes = df_dict['shapes']
+        shapes = df_dict['shapes'].copy()
         geoms = gpd.points_from_xy(shapes.shape_pt_lon, shapes.shape_pt_lat)
 
         gdf = gpd.GeoDataFrame(shapes, geometry=geoms, crs="EPSG:4326")
