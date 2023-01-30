@@ -6,7 +6,7 @@ import shapely.geometry
 import geopandas as gpd
 from zipfile import ZipFile
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 logger = logging.getLogger(__name__)
 
