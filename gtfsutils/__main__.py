@@ -18,6 +18,10 @@ def main():
     parser_filter.add_argument(dest="src", help="Input GTFS filepath")
     parser_filter.add_argument(dest="dst", help="Output GTFS filepath")
     parser_filter.add_argument(dest="bounds", help="Filter boundary")
+    parser_filter.add_argument("-t", "--target",
+        dest='target',
+        help="Filter target (stops, shapes)",
+        default="stops")
     parser_filter.add_argument("-o", "--operation",
         dest='operation',
         help="Filter operation (within, intersects)",
@@ -67,9 +71,17 @@ def main():
         logger.debug(f"Loaded {args.src} in {duration:.2f}s")
 
         # Filter GTFS
-        t = time.time()
-        gtfsutils.filter.filter_by_geometry(
-            df_dict, bounds, operation=args.operation)
+        if args.target == 'stops':
+            t = time.time()
+            gtfsutils.filter.spatial_filter_by_stops(
+                df_dict, bounds)
+        elif args.target == 'shapes':
+            t = time.time()
+            gtfsutils.filter.spatial_filter_by_shapes(
+                df_dict, bounds, operation=args.operation)
+        else:
+            raise ValueError(
+                f"Target {args.target} not supported!")
         duration = time.time() - t
         logger.debug(f"Filtered {args.src} in {duration:.2f}s")
 
