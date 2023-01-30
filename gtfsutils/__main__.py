@@ -2,6 +2,7 @@ import json
 import time
 import logging
 import argparse
+import geopandas as gpd
 
 import gtfsutils
 import gtfsutils.filter
@@ -62,7 +63,10 @@ def main():
         assert args.dst is not None, "No output file specified"
 
         # Prepare bounds
-        bounds = json.loads(args.bounds)
+        if args.bounds.startswith("["):
+            bounds = json.loads(args.bounds)
+        else:
+            bounds = gpd.read_file(args.bounds).geometry.unary_union
 
         # Load GTFS
         t = time.time()
