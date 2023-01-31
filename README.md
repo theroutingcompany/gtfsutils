@@ -6,10 +6,18 @@ GTFS command-line tool and Python GTFS utility library
 
 # Installation
 
-To install the package, type:
+To install the package from PyPi:
 
 ```bash
 pip install gtfsutils
+```
+
+To install the development version from GitHub:
+
+```bash
+git clone git@github.com:triply-at/osm-enrichment.git
+cd osm-enrichment
+pip install -e .  # Install in editable mode
 ```
 
 # Usage
