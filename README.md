@@ -15,8 +15,8 @@ pip install gtfsutils
 To install the development version from GitHub:
 
 ```bash
-git clone git@github.com:triply-at/osm-enrichment.git
-cd osm-enrichment
+git clone git@github.com:triply-at/gtfsutils.git
+cd gtfsutils
 pip install -e .  # Install in editable mode
 ```
 
