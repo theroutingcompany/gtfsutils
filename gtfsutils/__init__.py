@@ -6,7 +6,7 @@ import shapely.geometry
 import geopandas as gpd
 from zipfile import ZipFile
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,23 @@ def load_gtfs(filepath, subset=None):
     return df_dict
 
 
-def load_shapes(src):
+def load_stops(src):
+    if isinstance(src, str):
+        df_dict = load_gtfs(src, subset=['stops'])
+    elif isinstance(src, dict):
+        df_dict = src
+    else:
+        raise ValueError(
+            f"Data type not supported: {type(src)}")
+
+    stops = df_dict['stops'].copy()
+    geoms = gpd.points_from_xy(stops.stop_lon, stops.stop_lat)
+
+    return gpd.GeoDataFrame(
+        stops, geometry=geoms, crs="EPSG:4326")
+
+
+def load_shapes(src, geom_type='linestring'):
     if isinstance(src, str):
         df_dict = load_gtfs(src, subset=['shapes'])
     elif isinstance(src, dict):
@@ -106,19 +122,31 @@ def load_shapes(src):
     if 'shapes' not in df_dict:
         raise ValueError("shapes.txt not found in GTFS")
 
-    items = []
-    for shape_id, g in df_dict['shapes'].groupby('shape_id'):
-        g = g.sort_values('shape_pt_sequence')
-        coords = g[['shape_pt_lon', 'shape_pt_lat']].values
+    if geom_type == 'linestring':
+        items = []
+        for shape_id, g in df_dict['shapes'].groupby('shape_id'):
+            g = g.sort_values('shape_pt_sequence')
+            coords = g[['shape_pt_lon', 'shape_pt_lat']].values
 
-        if len(coords) > 1:    
-            items.append({
-                'shape_id': shape_id,
-                'geom': shapely.geometry.LineString(coords)
-            })
+            if len(coords) > 1:
+                items.append({
+                    'shape_id': shape_id,
+                    'geom': shapely.geometry.LineString(coords)
+                })
 
-    return gpd.GeoDataFrame(
-        items, geometry='geom', crs="EPSG:4326")
+        gdf = gpd.GeoDataFrame(items, geometry='geom', crs="EPSG:4326")
+
+    elif geom_type == 'point':
+        shapes = df_dict['shapes'].copy()
+        geoms = gpd.points_from_xy(shapes.shape_pt_lon, shapes.shape_pt_lat)
+
+        gdf = gpd.GeoDataFrame(shapes, geometry=geoms, crs="EPSG:4326")
+
+    else:
+        raise ValueError(
+            f"Geometry type {geom_type} not supported!")
+
+    return gdf
 
 
 def save_gtfs(df_dict, filepath, ignore_required=False, overwrite=False):

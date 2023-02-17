@@ -6,55 +6,138 @@ GTFS command-line tool and Python GTFS utility library
 
 # Installation
 
-To install the package, type:
+To install the package from PyPi:
 
 ```bash
 pip install gtfsutils
 ```
 
+To install the development version from GitHub:
+
+```bash
+git clone git@github.com:triply-at/gtfsutils.git
+cd gtfsutils
+pip install -e .  # Install in editable mode
+```
+
 # Usage
 
-The usage is illustrated in [quickstart.ipynb](quickstart.ipynb).
+## Python package
 
-The package can be also used as a command-line tool. Here is how to filter a GTFS file using a bounding box:
+The usage of the Python package is illustrated in [quickstart.ipynb](quickstart.ipynb).
 
-```bash
-gtfsutils filter \
-  --verbose \
-  --bounds "[16.197, 47.999, 16.549, 48.301]" \
-  -i data/vienna.gtfs.zip \
-  -o data/vienna-filtered.gtfs.zip
-```
+## Command-line tool
 
-Here is how to compute the bounding box of a GTFS file:
+The package can be also used as a command-line tool. There are three sub-tools available.
 
-```bash
-gtfsutils bounds -i data/vienna.gtfs.zip
-```
+### Filter
 
-For more information on the command-line interface, type:
+The filter tool applies a spatial filter to a GTFS file. You can either filter based on stop locations or on trip shapes. The filter can be specified either as a bounding box (xmin, ymin, xmax, ymax) or as a file path (e.g. to a GeoJSON or GPKG file).
+
+Here is how to spatially filter a GTFS file based on stop locations, using a bounding box:
 
 ```bash
-gtfsutils --help
+gtfsutils filter -t stops data/vienna.gtfs.zip data/vienna-filtered.gtfs.zip "[16.197, 47.999, 16.549, 48.301]"
+```
+
+Here is how to spatially filter a GTFS file based on trip shapes, using a GeoJSON file:
+
+```bash
+gtfsutils filter -t shapes data/vienna.gtfs.zip data/vienna-filtered.gtfs.zip data/area.geojson
+```
+
+For more information, type:
+
+```bash
+gtfsutils filter --help
 ```
 
 ```
-usage: gtfsutils [-h] [-i SRC] [-o DST] [--bounds BOUNDS] [-f OPERATION] [--overwrite] [-v] method
-
-GTFS Utilities
+usage: gtfsutils filter [-h] [-t TARGET] [-o OPERATION] [--overwrite] [-v] src dst bounds
 
 positional arguments:
-  method                GTFS method: filter, bounds, merge
+  src                   Input GTFS filepath
+  dst                   Output GTFS filepath
+  bounds                Filter boundary
 
 optional arguments:
   -h, --help            show this help message and exit
-  -i SRC, --input SRC   Input filepath
-  -o DST, --output DST  Output filepath
-  --bounds BOUNDS       Filter boundary
-  -f OPERATION, --filter-operation OPERATION
+  -t TARGET, --target TARGET
+                        Filter target (stops, shapes)
+  -o OPERATION, --operation OPERATION
                         Filter operation (within, intersects)
   --overwrite           Overwrite if exists
   -v, --verbose         Verbose output
+```
+
+### Bounds
+
+The bounds tool computes the bounding box (based on stop locations) of a GTFS file:
+
+```bash
+gtfsutils bounds data/vienna.gtfs.zip
+```
+
+```bash
+[16.1977025532707, 47.9995020902886, 16.5494019702052, 48.3011051975429]
+```
+
+For more information, type:
+
+```bash
+gtfsutils bounds --help
+```
+
+```
+usage: gtfsutils bounds [-h] src
+
+positional arguments:
+  src         Input GTFS filepath
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+### Info
+
+The info tool print general information about a GTFS file:
+
+```bash
+gtfsutils info data/vienna.gtfs.zip
+```
+
+```bash
+GTFS files:
+  agency.txt                      2 rows
+  calendar.txt                  186 rows
+  calendar_dates.txt          9,575 rows
+  routes.txt                    441 rows
+  shapes.txt                401,371 rows
+  stop_times.txt          3,733,781 rows
+  stops.txt                   4,510 rows
+  trips.txt                 201,042 rows
+
+Calender date range:
+  11.12.2022 - 09.12.2023
+
+Bounding box:
+  [16.1977025532707, 47.9995020902886, 16.5494019702052, 48.3011051975429]
+```
+
+For more information, type:
+
+```bash
+gtfsutils info --help
+```
+
+```
+usage: gtfsutils info [-h] src
+
+positional arguments:
+  src         Input GTFS filepath
+
+optional arguments:
+  -h, --help  show this help message and exit
 ```
 
 # Testing
