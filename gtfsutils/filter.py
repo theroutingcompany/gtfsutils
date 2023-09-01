@@ -146,6 +146,10 @@ def filter_by_shape_ids(df_dict, shape_ids):
     route_ids = df_dict['trips']['route_id'].values
     mask = df_dict['routes']['route_id'].isin(route_ids)
     df_dict['routes'] = df_dict['routes'][mask]
+    df_dict['routes']['route_short_name'] = df_dict['routes']['route_short_name'] \
+        .astype(str)
+    df_dict['routes']['route_long_name'] = df_dict['routes']['route_long_name'] \
+        .astype(str)
 
     # Filter agency.txt
     agency_ids = df_dict['routes']['agency_id'].values
