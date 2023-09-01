@@ -39,14 +39,16 @@ def filter_by_stop_ids(df_dict, stop_ids):
     mask = df_dict['stops']['stop_id'].isin(stop_ids)
     df_dict['stops'] = df_dict['stops'][mask]
 
-    # Filter stop_times.txt
-    mask = df_dict['stop_times']['stop_id'].isin(stop_ids)
-    df_dict['stop_times'] = df_dict['stop_times'][mask]
-
     # Filter trips.txt
-    trip_ids = df_dict['stop_times']['trip_id'].values
-    mask = df_dict['trips']['trip_id'].isin(trip_ids)
+    st_mask = df_dict['stop_times']['stop_id'].isin(stop_ids)
+    pruned_trip_ids = df_dict['stop_times'][~st_mask]['trip_id'].values
+    mask = ~df_dict['trips']['trip_id'].isin(pruned_trip_ids)
     df_dict['trips'] = df_dict['trips'][mask]
+
+    # Filter stop_times.txt
+    trip_ids = df_dict['trips']['trip_id'].values
+    mask = df_dict['stop_times']['trip_id'].isin(trip_ids)
+    df_dict['stop_times'] = df_dict['stop_times'][mask]
 
     # Filter route.txt
     route_ids = df_dict['trips']['route_id'].values
@@ -84,8 +86,20 @@ def filter_by_stop_ids(df_dict, stop_ids):
     # Filter transfers.txt
     if 'transfers' in df_dict:
         mask = df_dict['transfers']['from_stop_id'].isin(stop_ids) \
-             & df_dict['transfers']['to_stop_id'].isin(stop_ids)
+            & df_dict['transfers']['to_stop_id'].isin(stop_ids)
         df_dict['transfers'] = df_dict['transfers'][mask]
+
+    # Filter fare_rules.txt
+    if 'fare_rules' in df_dict:
+        route_ids = df_dict['routes']['route_id'].values
+        mask = df_dict['fare_rules']['route_id'].isin(route_ids)
+        df_dict['fare_rules'] = df_dict['fare_rules'][mask]
+
+    # Filter fare_attributes.txt
+    if 'fare_attributes' in df_dict:
+        fare_ids = df_dict['fare_rules']['fare_id'].values
+        mask = df_dict['fare_attributes']['fare_id'].isin(fare_ids)
+        df_dict['fare_attributes'] = df_dict['fare_attributes'][mask]
 
 
 def spatial_filter_by_shapes(df_dict, filter_geometry, operation='within'):
@@ -99,7 +113,7 @@ def spatial_filter_by_shapes(df_dict, filter_geometry, operation='within'):
     else:
         raise ValueError(
             f"filter_geometry type {type(filter_geometry)} not supported!")
-    
+
     # Filter shapes
     gdf_shapes = load_shapes(df_dict)
     if operation == 'within':
@@ -109,7 +123,7 @@ def spatial_filter_by_shapes(df_dict, filter_geometry, operation='within'):
     else:
         raise ValueError(
             f"Operation {operation} not supported!")
-        
+
     gdf_shapes = gdf_shapes[mask]
     shape_ids = gdf_shapes['shape_id'].values
     filter_by_shape_ids(df_dict, shape_ids)
@@ -168,7 +182,7 @@ def filter_by_shape_ids(df_dict, shape_ids):
     # Filter transfers.txt
     if 'transfers' in df_dict:
         mask = df_dict['transfers']['from_stop_id'].isin(stop_ids) \
-             & df_dict['transfers']['to_stop_id'].isin(stop_ids)
+            & df_dict['transfers']['to_stop_id'].isin(stop_ids)
         df_dict['transfers'] = df_dict['transfers'][mask]
 
 
@@ -226,5 +240,5 @@ def filter_by_agency_ids(df_dict, agency_ids):
     # Filter transfers.txt
     if 'transfers' in df_dict:
         mask = df_dict['transfers']['from_stop_id'].isin(stops_ids) \
-             & df_dict['transfers']['to_stop_id'].isin(stops_ids)
+            & df_dict['transfers']['to_stop_id'].isin(stops_ids)
         df_dict['transfers'] = df_dict['transfers'][mask]
