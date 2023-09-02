@@ -39,16 +39,14 @@ def filter_by_stop_ids(df_dict, stop_ids):
     mask = df_dict['stops']['stop_id'].isin(stop_ids)
     df_dict['stops'] = df_dict['stops'][mask]
 
-    # Filter trips.txt
-    st_mask = df_dict['stop_times']['stop_id'].isin(stop_ids)
-    pruned_trip_ids = df_dict['stop_times'][~st_mask]['trip_id'].values
-    mask = ~df_dict['trips']['trip_id'].isin(pruned_trip_ids)
-    df_dict['trips'] = df_dict['trips'][mask]
-
     # Filter stop_times.txt
-    trip_ids = df_dict['trips']['trip_id'].values
-    mask = df_dict['stop_times']['trip_id'].isin(trip_ids)
+    mask = df_dict['stop_times']['stop_id'].isin(stop_ids)
     df_dict['stop_times'] = df_dict['stop_times'][mask]
+
+    # Filter trips.txt
+    trip_ids = df_dict['stop_times']['trip_id'].values
+    mask = df_dict['trips']['trip_id'].isin(trip_ids)
+    df_dict['trips'] = df_dict['trips'][mask]
 
     # Filter route.txt
     route_ids = df_dict['trips']['route_id'].values
