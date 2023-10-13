@@ -4,6 +4,7 @@ import datetime
 import pandas as pd
 import shapely.geometry
 import geopandas as gpd
+import re
 from zipfile import ZipFile
 
 __version__ = "0.0.5"
@@ -18,9 +19,9 @@ REQUIRED_GTFS_FILES = [
     'trips',
     'calendar',
     'stop_times',
-    #'shapes',
-    #'frequencies',
-    #'feedinfo'
+    # 'shapes',
+    # 'frequencies',
+    # 'feedinfo'
 ]
 
 # https://developers.google.com/transit/gtfs/reference
@@ -65,6 +66,14 @@ COLUMNS_DEPENDENCY_DICT = {
 }
 
 
+def replace_line_breaks_in_quotes(f):
+    def fix(match): return re.sub(r'\r?\n', " ", match[0])
+
+    text = f.read()
+    text = re.sub(r'"([^"]+)"', fix, text)
+    f.write(text)
+
+
 def load_gtfs(filepath, subset=None):
     df_dict = {}
     if os.path.isdir(filepath):
@@ -72,9 +81,12 @@ def load_gtfs(filepath, subset=None):
             filekey = filename.split('.txt')[0]
             if (subset is None) or (filekey in subset):
                 try:
-                    df_dict[filekey] = pd.read_csv(
-                        os.path.join(filepath, filename),
-                        low_memory=False)
+                    fname = os.path.join(filepath, filename)
+
+                    with open(fname, 'r+') as f:
+                        replace_line_breaks_in_quotes(f)
+
+                    df_dict[filekey] = pd.read_csv(fname, low_memory=False)
                 except Exception as e:
                     logger.error(
                         f"[{e.__class__.__name__}] {e} for {filename}")
@@ -84,13 +96,16 @@ def load_gtfs(filepath, subset=None):
                 filekey = filename.split('.txt')[0]
                 if (subset is None) or (filekey in subset):
                     try:
+                        with z.open(filename, mode='r+') as f:
+                            replace_line_breaks_in_quotes(f)
+
                         df_dict[filekey] = pd.read_csv(
                             z.open(filename),
                             low_memory=False)
                     except Exception as e:
                         logger.error(
                             f"[{e.__class__.__name__}] {e} for {filename}")
-            
+
     return df_dict
 
 
@@ -118,7 +133,7 @@ def load_shapes(src, geom_type='linestring'):
     else:
         raise ValueError(
             f"Data type not supported: {type(src)}")
-    
+
     if 'shapes' not in df_dict:
         raise ValueError("shapes.txt not found in GTFS")
 
@@ -150,10 +165,10 @@ def load_shapes(src, geom_type='linestring'):
 
 
 def save_gtfs(df_dict, filepath, ignore_required=False, overwrite=False):
-    if not ignore_required and not all(key in df_dict.keys() 
-               for key in REQUIRED_GTFS_FILES):
+    if not ignore_required and not all(key in df_dict.keys()
+                                       for key in REQUIRED_GTFS_FILES):
         raise ValueError("Not all required GTFS files in dictionary")
-    
+
     if overwrite or not os.path.exists(filepath):
         with ZipFile(filepath, "w") as zf:
             for filekey, df in df_dict.items():
@@ -198,7 +213,7 @@ def get_calendar_date_range(src):
         max_date = datetime.datetime.strptime(str(max_date), "%Y%m%d")
     else:
         raise ValueError("calendar.txt missing")
-    
+
     return min_date, max_date
 
 
@@ -216,9 +231,9 @@ def print_info(src):
         print(f"  {key + '.txt':<20s} {len(df_dict[key]):12,d} rows")
 
     min_date, max_date = get_calendar_date_range(df_dict)
-    print("\nCalender date range:\n  " \
-        f"{min_date.strftime('%d.%m.%Y')} - "\
-        f"{max_date.strftime('%d.%m.%Y')}")
+    print("\nCalender date range:\n  "
+          f"{min_date.strftime('%d.%m.%Y')} - "
+          f"{max_date.strftime('%d.%m.%Y')}")
 
     bounds = get_bounding_box(df_dict)
     print(f"\nBounding box:\n  {bounds}\n")
