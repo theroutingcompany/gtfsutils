@@ -66,12 +66,15 @@ COLUMNS_DEPENDENCY_DICT = {
 }
 
 
-def replace_line_breaks_in_quotes(f):
+def replace_line_breaks_in_quotes(z, fname):
     def fix(match): return re.sub(r'\r?\n', " ", match[0])
 
-    text = f.read()
-    text = re.sub(r'"([^"]+)"', fix, text)
-    f.write(text)
+    with z.open(fname, mode='r') as f:
+        text = f.read()
+        text = re.sub(r'"([^"]+)"', fix, text)
+
+    with z.open(fname, mode='w') as f:
+        f.write(text)
 
 
 def load_gtfs(filepath, subset=None):
@@ -82,10 +85,6 @@ def load_gtfs(filepath, subset=None):
             if (subset is None) or (filekey in subset):
                 try:
                     fname = os.path.join(filepath, filename)
-
-                    with open(fname, 'r+') as f:
-                        replace_line_breaks_in_quotes(f)
-
                     df_dict[filekey] = pd.read_csv(fname, low_memory=False)
                 except Exception as e:
                     logger.error(
@@ -96,9 +95,7 @@ def load_gtfs(filepath, subset=None):
                 filekey = filename.split('.txt')[0]
                 if (subset is None) or (filekey in subset):
                     try:
-                        with z.open(filename, mode='r+') as f:
-                            replace_line_breaks_in_quotes(f)
-
+                        replace_line_breaks_in_quotes(z, filename)
                         df_dict[filekey] = pd.read_csv(
                             z.open(filename),
                             low_memory=False)
