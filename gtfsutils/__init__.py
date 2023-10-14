@@ -76,6 +76,8 @@ def replace_line_breaks_in_quotes(z, fname):
     with z.open(fname, mode='w') as f:
         f.write(text)
 
+    z.write(fname)
+
 
 def load_gtfs(filepath, subset=None):
     df_dict = {}
