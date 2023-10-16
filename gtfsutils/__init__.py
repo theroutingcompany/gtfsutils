@@ -5,6 +5,7 @@ import pandas as pd
 import shapely.geometry
 import geopandas as gpd
 import re
+import io
 from zipfile import ZipFile
 
 __version__ = "0.0.5"
@@ -66,28 +67,26 @@ COLUMNS_DEPENDENCY_DICT = {
 }
 
 
-def replace_line_breaks_in_quotes(z, fname):
+def replace_line_breaks_in_quotes(text: str) -> io.StringIO:
     def fix(match): return re.sub(r'\r?\n', " ", match[0])
-
-    with z.open(fname, mode='r') as f:
-        text = f.read()
-        text = re.sub(r'"([^"]+)"', fix, text)
-
-    with z.open(fname, mode='w') as f:
-        f.write(text)
-
-    z.write(fname)
+    return io.StringIO(re.sub(r'"([^"]+)"', fix, text))
 
 
 def load_gtfs(filepath, subset=None):
     df_dict = {}
+    buffer: io.StringIO
+
     if os.path.isdir(filepath):
         for filename in os.listdir(filepath):
             filekey = filename.split('.txt')[0]
             if (subset is None) or (filekey in subset):
                 try:
                     fname = os.path.join(filepath, filename)
-                    df_dict[filekey] = pd.read_csv(fname, low_memory=False)
+
+                    with open(fname, 'r') as f:
+                        buffer = replace_line_breaks_in_quotes(f.read())
+
+                    df_dict[filekey] = pd.read_csv(buffer, low_memory=False)
                 except Exception as e:
                     logger.error(
                         f"[{e.__class__.__name__}] {e} for {filename}")
@@ -97,10 +96,12 @@ def load_gtfs(filepath, subset=None):
                 filekey = filename.split('.txt')[0]
                 if (subset is None) or (filekey in subset):
                     try:
-                        replace_line_breaks_in_quotes(z, filename)
+                        with z.open(filename) as f:
+                            buffer = replace_line_breaks_in_quotes(
+                                f.read().decode())
+
                         df_dict[filekey] = pd.read_csv(
-                            z.open(filename),
-                            low_memory=False)
+                            buffer, low_memory=False)
                     except Exception as e:
                         logger.error(
                             f"[{e.__class__.__name__}] {e} for {filename}")

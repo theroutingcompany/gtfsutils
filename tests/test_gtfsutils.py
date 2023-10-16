@@ -30,5 +30,5 @@ def test__gtfsutils_get_calendar_date_range():
     min_data, max_date = gtfsutils.get_calendar_date_range(filepath)
 
     assert isinstance(min_data, datetime.datetime) and \
-           isinstance(max_date, datetime.datetime)
+        isinstance(max_date, datetime.datetime)
     assert min_data <= max_date
