@@ -96,12 +96,12 @@ def load_gtfs(filepath, subset=None):
                 filekey = filename.split('.txt')[0]
                 if (subset is None) or (filekey in subset):
                     try:
-                        with z.open(filename) as f:
-                            buffer = replace_line_breaks_in_quotes(
-                                f.read().decode())
+                        # with z.open(filename) as f:
+                        #     buffer = replace_line_breaks_in_quotes(
+                        #         f.read().decode())
 
                         df_dict[filekey] = pd.read_csv(
-                            buffer, low_memory=False)
+                            z.open(filename), low_memory=False)
                     except Exception as e:
                         logger.error(
                             f"[{e.__class__.__name__}] {e} for {filename}")
