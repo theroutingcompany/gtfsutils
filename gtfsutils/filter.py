@@ -93,11 +93,11 @@ def filter_by_stop_ids(df_dict, stop_ids):
         mask = df_dict['fare_rules']['route_id'].isin(route_ids)
         df_dict['fare_rules'] = df_dict['fare_rules'][mask]
 
-    # Filter fare_attributes.txt
-    if 'fare_attributes' in df_dict:
-        fare_ids = df_dict['fare_rules']['fare_id'].values
-        mask = df_dict['fare_attributes']['fare_id'].isin(fare_ids)
-        df_dict['fare_attributes'] = df_dict['fare_attributes'][mask]
+        # Filter fare_attributes.txt if fare_rules.txt is provided
+        if 'fare_attributes' in df_dict:
+            fare_ids = df_dict['fare_rules']['fare_id'].values
+            mask = df_dict['fare_attributes']['fare_id'].isin(fare_ids)
+            df_dict['fare_attributes'] = df_dict['fare_attributes'][mask]
 
 
 def spatial_filter_by_shapes(df_dict, filter_geometry, operation='within'):
