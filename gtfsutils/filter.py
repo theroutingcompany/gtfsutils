@@ -1,6 +1,7 @@
-import shapely
 import numpy as np
-from . import load_stops, load_shapes
+import shapely
+
+from . import load_shapes, load_stops
 
 
 def spatial_filter_by_stops(df_dict, filter_geometry):
@@ -8,8 +9,8 @@ def spatial_filter_by_stops(df_dict, filter_geometry):
        isinstance(filter_geometry, np.ndarray):
         if len(filter_geometry) != 4:
             raise ValueError("Wrong dimension of bounds")
-        geom = shapely.geometry.box(*filter_geometry)
-    elif isinstance(filter_geometry, shapely.geometry.base.BaseGeometry):
+        geom = shapely.geometry.box(*filter_geometry)  # type: ignore
+    elif isinstance(filter_geometry, shapely.geometry.base.BaseGeometry):  # type: ignore
         geom = filter_geometry
     else:
         raise ValueError(
@@ -47,6 +48,12 @@ def filter_by_stop_ids(df_dict, stop_ids):
     trip_ids = df_dict['stop_times']['trip_id'].values
     mask = df_dict['trips']['trip_id'].isin(trip_ids)
     df_dict['trips'] = df_dict['trips'][mask]
+
+    direction_col_name = 'direction_id'
+    if 'trip_direction_name' in df_dict['trips']:
+        direction_col_name = 'trip_direction_name'
+
+    df_dict['trips'][direction_col_name].fillna(0, inplace=True)
 
     # Filter route.txt
     route_ids = df_dict['trips']['route_id'].values
@@ -99,14 +106,35 @@ def filter_by_stop_ids(df_dict, stop_ids):
             mask = df_dict['fare_attributes']['fare_id'].isin(fare_ids)
             df_dict['fare_attributes'] = df_dict['fare_attributes'][mask]
 
+    # Filter pathways.txt
+    if 'pathways' in df_dict:
+        mask = df_dict['pathways']['from_stop_id'].isin(stop_ids) \
+            & df_dict['pathways']['to_stop_id'].isin(stop_ids)
+        df_dict['pathways'] = df_dict['pathways'][mask]
+
+    # Filter calendar_attributes.txt
+    if 'calendar_attributes' in df_dict:
+        mask = df_dict['calendar_attributes']['service_id'].isin(service_ids)
+        df_dict['calendar_attributes'] = df_dict['calendar_attributes'][mask]
+
+    # Filter route_attributes.txt
+    if 'route_attributes' in df_dict:
+        mask = df_dict['route_attributes']['route_id'].isin(route_ids)
+        df_dict['route_attributes'] = df_dict['route_attributes'][mask]
+
+    # Filter stop_areas.txt
+    if 'stop_areas' in df_dict:
+        mask = df_dict['stop_areas']['stop_id'].isin(stop_ids)
+        df_dict['stop_areas'] = df_dict['stop_areas'][mask]
+
 
 def spatial_filter_by_shapes(df_dict, filter_geometry, operation='within'):
     if isinstance(filter_geometry, list) or \
        isinstance(filter_geometry, np.ndarray):
         if len(filter_geometry) != 4:
             raise ValueError("Wrong dimension of bounds")
-        geom = shapely.geometry.box(*filter_geometry)
-    elif isinstance(filter_geometry, shapely.geometry.base.BaseGeometry):
+        geom = shapely.geometry.box(*filter_geometry)  # type: ignore
+    elif isinstance(filter_geometry, shapely.geometry.base.BaseGeometry):  # type: ignore
         geom = filter_geometry
     else:
         raise ValueError(
@@ -236,6 +264,7 @@ def filter_by_agency_ids(df_dict, agency_ids):
 
     # Filter frequencies.txt
     if 'frequencies' in df_dict:
+        # BUG: (ajw, 2024-06-06): trip_ids doesn't look like it's defined but this func isn't used so 🤷‍♂️.
         mask = df_dict['frequencies']['trip_id'].isin(trip_ids)
         df_dict['frequencies'] = df_dict['frequencies'][mask]
 
