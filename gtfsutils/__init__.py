@@ -1,12 +1,13 @@
-import os
-import logging
 import datetime
+import io
+import logging
+import os
+import re
+from zipfile import ZipFile
+
+import geopandas as gpd
 import pandas as pd
 import shapely.geometry
-import geopandas as gpd
-import re
-import io
-from zipfile import ZipFile
 
 __version__ = "0.0.5"
 
@@ -122,7 +123,7 @@ def load_stops(src):
     geoms = gpd.points_from_xy(stops.stop_lon, stops.stop_lat)
 
     return gpd.GeoDataFrame(
-        stops, geometry=geoms, crs="EPSG:4326")
+        stops, geometry=geoms, crs="EPSG:4326")  # type: ignore[reportCallIssue]
 
 
 def load_shapes(src, geom_type='linestring'):
@@ -149,13 +150,13 @@ def load_shapes(src, geom_type='linestring'):
                     'geom': shapely.geometry.LineString(coords)
                 })
 
-        gdf = gpd.GeoDataFrame(items, geometry='geom', crs="EPSG:4326")
+        gdf = gpd.GeoDataFrame(items, geometry='geom', crs="EPSG:4326")  # type: ignore[reportCallIssue]
 
     elif geom_type == 'point':
         shapes = df_dict['shapes'].copy()
         geoms = gpd.points_from_xy(shapes.shape_pt_lon, shapes.shape_pt_lat)
 
-        gdf = gpd.GeoDataFrame(shapes, geometry=geoms, crs="EPSG:4326")
+        gdf = gpd.GeoDataFrame(shapes, geometry=geoms, crs="EPSG:4326")  # type: ignore[reportCallIssue]
 
     else:
         raise ValueError(
