@@ -31,20 +31,27 @@ def spatial_filter_by_stops(df_dict, filter_geometry):
         df_dict['shapes'] = df_dict['shapes'][mask]
 
 
+def log_filter_step(name) -> None:
+    print(f'Filtering {name}.txt')
+
+
 def filter_by_stop_ids(df_dict, stop_ids):
     if not isinstance(stop_ids, list) and \
        not isinstance(stop_ids, np.ndarray):
         stop_ids = [stop_ids]
 
     # Filter stops.txt
+    log_filter_step('stops')
     mask = df_dict['stops']['stop_id'].isin(stop_ids)
     df_dict['stops'] = df_dict['stops'][mask]
 
     # Filter stop_times.txt
+    log_filter_step('stop_times')
     mask = df_dict['stop_times']['stop_id'].isin(stop_ids)
     df_dict['stop_times'] = df_dict['stop_times'][mask]
 
     # Filter trips.txt
+    log_filter_step('trips')
     trip_ids = df_dict['stop_times']['trip_id'].values
     mask = df_dict['trips']['trip_id'].isin(trip_ids)
     df_dict['trips'] = df_dict['trips'][mask]
@@ -56,74 +63,87 @@ def filter_by_stop_ids(df_dict, stop_ids):
     df_dict['trips'][direction_col_name].fillna(0, inplace=True)
 
     # Filter route.txt
+    log_filter_step('routes')
     route_ids = df_dict['trips']['route_id'].values
     mask = df_dict['routes']['route_id'].isin(route_ids)
     df_dict['routes'] = df_dict['routes'][mask]
 
     # Filter agency.txt
+    log_filter_step('agency')
     agency_ids = df_dict['routes']['agency_id'].values
     mask = df_dict['agency']['agency_id'].isin(agency_ids)
     df_dict['agency'] = df_dict['agency'][mask]
 
     # Filter shapes.txt
     if 'shapes' in df_dict:
+        log_filter_step('shapes')
         shape_ids = df_dict['trips']['shape_id'].values
         mask = df_dict['shapes']['shape_id'].isin(shape_ids)
         df_dict['shapes'] = df_dict['shapes'][mask]
 
     # Filter calendar.txt
     if 'calendar' in df_dict:
+        log_filter_step('calendar')
         service_ids = df_dict['trips']['service_id'].values
         mask = df_dict['calendar']['service_id'].isin(service_ids)
         df_dict['calendar'] = df_dict['calendar'][mask]
 
     # Filter calendar_dates.txt
     if 'calendar_dates' in df_dict:
+        log_filter_step('calendar_dates')
         service_ids = df_dict['trips']['service_id'].values
         mask = df_dict['calendar_dates']['service_id'].isin(service_ids)
         df_dict['calendar_dates'] = df_dict['calendar_dates'][mask]
 
     # Filter frequencies.txt
     if 'frequencies' in df_dict:
+        log_filter_step('frequencies')
         mask = df_dict['frequencies']['trip_id'].isin(trip_ids)
         df_dict['frequencies'] = df_dict['frequencies'][mask]
 
     # Filter transfers.txt
     if 'transfers' in df_dict:
+        log_filter_step('transfers')
         mask = df_dict['transfers']['from_stop_id'].isin(stop_ids) \
             & df_dict['transfers']['to_stop_id'].isin(stop_ids)
         df_dict['transfers'] = df_dict['transfers'][mask]
 
     # Filter fare_rules.txt
     if 'fare_rules' in df_dict:
+        log_filter_step('fare_rules')
         route_ids = df_dict['routes']['route_id'].values
         mask = df_dict['fare_rules']['route_id'].isin(route_ids)
         df_dict['fare_rules'] = df_dict['fare_rules'][mask]
 
         # Filter fare_attributes.txt if fare_rules.txt is provided
         if 'fare_attributes' in df_dict:
+            log_filter_step('fare_attributes')
             fare_ids = df_dict['fare_rules']['fare_id'].values
             mask = df_dict['fare_attributes']['fare_id'].isin(fare_ids)
             df_dict['fare_attributes'] = df_dict['fare_attributes'][mask]
 
     # Filter pathways.txt
     if 'pathways' in df_dict:
+        log_filter_step('pathways')
         mask = df_dict['pathways']['from_stop_id'].isin(stop_ids) \
             & df_dict['pathways']['to_stop_id'].isin(stop_ids)
         df_dict['pathways'] = df_dict['pathways'][mask]
 
     # Filter calendar_attributes.txt
     if 'calendar_attributes' in df_dict:
+        log_filter_step('calendar_attributes')
         mask = df_dict['calendar_attributes']['service_id'].isin(service_ids)
         df_dict['calendar_attributes'] = df_dict['calendar_attributes'][mask]
 
     # Filter route_attributes.txt
     if 'route_attributes' in df_dict:
+        log_filter_step('route_attributes')
         mask = df_dict['route_attributes']['route_id'].isin(route_ids)
         df_dict['route_attributes'] = df_dict['route_attributes'][mask]
 
     # Filter stop_areas.txt
     if 'stop_areas' in df_dict:
+        log_filter_step('stop_areas')
         mask = df_dict['stop_areas']['stop_id'].isin(stop_ids)
         df_dict['stop_areas'] = df_dict['stop_areas'][mask]
 
