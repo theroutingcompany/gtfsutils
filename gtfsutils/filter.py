@@ -70,7 +70,19 @@ def filter_by_stop_ids(df_dict, stop_ids):
 
     # Filter agency.txt
     log_filter_step('agency')
+    print('Agency:')
     print(df_dict['agency'])
+    print('Agency values:')
+    print(df_dict['agency'.values])
+    print('Agency IDs:')
+    print(df_dict['agency']['agency_id'])
+    print('Agency ID:')
+    print(df_dict['agency']['agency_id'][0])
+    print('Routes:')
+    print(df_dict['routes'])
+    print('Routes values:')
+    print(df_dict['routes'.values])
+
     if len(df_dict['agency'].values) == 1:
         # if just one agency, insert column to routes with that one agency
         print(df_dict['routes'])
